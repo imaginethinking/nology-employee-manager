@@ -18,7 +18,14 @@ public class ModelMapperConfig {
 
         mapper.addConverter(ctx -> {
             String source = ctx.getSource();
-            return source == null ? null : source.trim();
+
+            if (source == null) {
+                return null;
+            }
+
+            String trimmed = source.trim();
+
+            return trimmed.isBlank() ? null : trimmed;
         }, String.class, String.class);
 
         return mapper;
