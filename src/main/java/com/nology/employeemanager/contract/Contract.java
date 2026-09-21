@@ -1,7 +1,7 @@
 package com.nology.employeemanager.contract;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.nology.employeemanager.common.BaseEntity;
 import com.nology.employeemanager.employee.Employee;
@@ -31,10 +31,10 @@ public class Contract extends BaseEntity {
     private ContractType contractType;
 
     @Column(name = "start_date", nullable = false)
-    private Date startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private Date endDate;
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "employment_basis", nullable = false)
