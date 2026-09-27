@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nology.employeemanager.common.dtos.PageResponse;
 import com.nology.employeemanager.contract.dtos.ContractResponse;
 import com.nology.employeemanager.contract.dtos.CreateContractRequest;
 import com.nology.employeemanager.contract.dtos.UpdateContractRequest;
@@ -42,6 +43,14 @@ public class ContractController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<ContractResponse>> getPagedEmployeeContracts(@PathVariable  UUID employeeId) {
+        PageResponse<ContractResponse> response = contractService.getPagedEmployeeContracts(employeeId);
+
+        return ResponseEntity.ok(response);
+    }
+    
     
 
     @PatchMapping("/{contractId}")

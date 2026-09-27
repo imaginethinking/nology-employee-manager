@@ -14,7 +14,8 @@ public record ContractResponse(
         LocalDate startDate,
         LocalDate endDate,
         EmploymentBasis employmentBasis,
-        BigDecimal hoursPerWeek) {
+        BigDecimal hoursPerWeek,
+        Boolean isActive) {
     public static ContractResponse from(Contract contract) {
         return new ContractResponse(
                 contract.getId(),
@@ -22,6 +23,7 @@ public record ContractResponse(
                 contract.getStartDate(),
                 contract.getEndDate(),
                 contract.getEmploymentBasis(),
-                contract.getHoursPerWeek());
+                contract.getHoursPerWeek(),
+                contract.isActive());
     }
 }

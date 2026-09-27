@@ -42,4 +42,23 @@ public class Contract extends BaseEntity {
 
     @Column(name = "hours_per_week", nullable = false)
     private BigDecimal hoursPerWeek;
+
+
+    public boolean isActive() {
+        LocalDate today = LocalDate.now();
+
+        if (startDate.isAfter(today)) {
+            return false;
+        }
+
+        if (endDate == null) {
+            return true;
+        }
+
+        if (endDate.isBefore(today)) {
+            return false;
+        }
+
+        return true;
+    }
 }
