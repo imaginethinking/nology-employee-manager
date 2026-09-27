@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nology.employeemanager.common.dtos.PageResponse;
 import com.nology.employeemanager.employee.dtos.CreateEmployeeRequest;
 import com.nology.employeemanager.employee.dtos.EmployeeResponse;
 import com.nology.employeemanager.employee.dtos.UpdateEmployeeRequest;
@@ -41,11 +42,13 @@ public class EmployeeController {
         return ResponseEntity.ok(response);
     }
 
-    // @GetMapping
-    // public ResponseEntity<PageResponse<EmployeeResponse>> getPagedEmployees() {
+    @GetMapping
+    public ResponseEntity<PageResponse<EmployeeResponse>> getPagedEmployees() {
 
-    // PageResponse<EmployeeResponse> response = employeeService.getPagedEmployees()
-    // }
+        PageResponse<EmployeeResponse> response = employeeService.getPagedEmployees();
+
+        return ResponseEntity.ok(response); 
+    }
 
     @PatchMapping("/{id}")
     public ResponseEntity<EmployeeResponse> update(@PathVariable UUID id,

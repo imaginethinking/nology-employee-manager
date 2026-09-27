@@ -3,8 +3,11 @@ package com.nology.employeemanager.employee;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.nology.employeemanager.common.dtos.PageResponse;
 import com.nology.employeemanager.common.exceptions.NotFoundException;
 import com.nology.employeemanager.employee.dtos.CreateEmployeeRequest;
 import com.nology.employeemanager.employee.dtos.EmployeeResponse;
@@ -50,6 +53,13 @@ public class EmployeeService {
         Employee savedEmployee = employeeRepository.save(employee);
 
         return EmployeeResponse.from(savedEmployee);
+    }
+
+    public PageResponse<EmployeeResponse> getPagedEmployees() {
+        PageRequest pageRequest = PageRequest.of(0, 100);
+        Page<Employee> page = this.employeeRepository.findAll(pageRequest);
+
+        return PageResponse.assemble(page, EmployeeResponse::from);
     }
 
 }
