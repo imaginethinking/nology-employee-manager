@@ -10,6 +10,7 @@ import com.nology.employeemanager.common.exceptions.NotFoundException;
 import com.nology.employeemanager.common.exceptions.ServiceValidationException;
 import com.nology.employeemanager.contract.dtos.ContractResponse;
 import com.nology.employeemanager.contract.dtos.CreateContractRequest;
+import com.nology.employeemanager.contract.dtos.UpdateContractRequest;
 import com.nology.employeemanager.employee.Employee;
 import com.nology.employeemanager.employee.EmployeeRepository;
 
@@ -40,6 +41,30 @@ public class ContractService {
         Contract savedContract = contractRepository.save(contract);
 
         return ContractResponse.from(savedContract);
+    }
+
+    public ContractResponse update(UUID employeeId, UUID contractId, UpdateContractRequest request) {
+        this.employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+        
+        Contract contract = this.contractRepository.findById(contractId)
+                .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
+        
+        modelMapper.map(request, contract);
+
+        Contract savedContract = contractRepository.save(contract);
+
+        return ContractResponse.from(savedContract);
+    }
+
+    public ContractResponse getById(UUID employeeId, UUID contractId) {
+        this.employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+
+        Contract contract = this.contractRepository.findById(contractId)
+                .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
+
+        return ContractResponse.from(contract);
     }
 
 }
