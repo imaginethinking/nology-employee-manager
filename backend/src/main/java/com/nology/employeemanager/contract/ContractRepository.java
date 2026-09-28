@@ -1,5 +1,6 @@
 package com.nology.employeemanager.contract;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,8 +15,8 @@ public interface ContractRepository extends JpaRepository<Contract, UUID> {
             SELECT c
             FROM Contract c
             WHERE c.employee.id = :employeeId
-                AND c.startDate <= :today
-                AND (c.endDate IS NULL OR c.endDate >= :today)
+                AND c.startDate <= CURRENT_DATE
+                AND (c.endDate IS NULL OR c.endDate >= CURRENT_DATE)
             """)
     List<Contract> findActiveByEmployee_Id(UUID employeeId);
 
