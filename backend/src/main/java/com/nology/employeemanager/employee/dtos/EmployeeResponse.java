@@ -9,7 +9,7 @@ public record EmployeeResponse(
         String firstName,
         String middleName,
         String lastName,
-        ContactDetailsResponse contactDetailsResponse) {
+        ContactDetailsResponse contactDetails) {
     public static EmployeeResponse from(Employee employee) {
         return new EmployeeResponse(
                 employee.getId(),

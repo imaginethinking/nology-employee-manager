@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nology.employeemanager.common.dtos.PageResponse;
 import com.nology.employeemanager.employee.dtos.CreateEmployeeRequest;
+import com.nology.employeemanager.employee.dtos.EmployeeQueryParams;
 import com.nology.employeemanager.employee.dtos.EmployeeResponse;
 import com.nology.employeemanager.employee.dtos.UpdateEmployeeRequest;
 
@@ -43,9 +45,9 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<EmployeeResponse>> getPagedEmployees() {
+    public ResponseEntity<PageResponse<EmployeeResponse>> getPagedEmployees(@Valid @ModelAttribute EmployeeQueryParams params) {
 
-        PageResponse<EmployeeResponse> response = employeeService.getPagedEmployees();
+        PageResponse<EmployeeResponse> response = employeeService.getPagedEmployees(params);
 
         return ResponseEntity.ok(response); 
     }

@@ -5,7 +5,7 @@ import com.nology.employeemanager.employee.ContactDetails;
 public record ContactDetailsResponse(
         String emailAddress,
         String mobileNumber,
-        AddressResponse addressResponse) {
+        AddressResponse address) {
     public static ContactDetailsResponse from(ContactDetails contactDetails) {
         return new ContactDetailsResponse(
                 contactDetails.getEmailAddress(),
