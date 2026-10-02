@@ -22,7 +22,7 @@ public class PageQueryParams {
 
     public <T> void validatePageNumber(Page<T> data) {
         if (getPage() > 1 && data.getTotalPages() < getPage()) {
-            throw new UnprocessableContentException(String.format("Page %n is too high. Total pages is %n", getPage(), data.getTotalPages()));
+            throw new UnprocessableContentException(String.format("Page %d is too high. Total pages is %d", getPage(), data.getTotalPages()));
         }
     }
 }
