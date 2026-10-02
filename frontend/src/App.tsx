@@ -1,122 +1,168 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
+import Employee from './components/Employee/Employee';
+import EmployeeDetails from './components/EmployeeDetails/EmployeeDetails';
+import EmployeeFilters from './components/EmployeeFilters/EmployeeFilters';
+import NewEmployeeForm from './components/NewEmployeeForm/NewEmployeeForm';
+import type { EmployeeFormData } from './components/NewEmployeeForm/schema';
+import Pagination from './components/Pagination/Pagination';
+import {
+  createEmployee,
+  getAllEmployees,
+} from './services/employees';
+import type { ActiveFilter, Employee as EmployeeType } from './types/employee';
+import type { PageResponse } from './types/pagination';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function getInitialPage() {
+  const page = Number(new URLSearchParams(window.location.search).get('page'));
+  return page > 0 ? page : 1;
 }
 
-export default App
+function getInitialSize() {
+  const size = Number(new URLSearchParams(window.location.search).get('size'));
+  return [5, 10, 20].includes(size) ? size : 10;
+}
+
+function getInitialActive(): ActiveFilter {
+  const active = new URLSearchParams(window.location.search).get('active');
+
+  if (active === 'true' || active === 'false') {
+    return active;
+  }
+
+  return 'all';
+}
+
+function App() {
+  const params = new URLSearchParams(window.location.search);
+
+  const [employeePageData, setEmployeePageData] =
+    useState<PageResponse<EmployeeType> | null>(null);
+  const [page, setPage] = useState(getInitialPage);
+  const [size, setSize] = useState(getInitialSize);
+  const [search, setSearch] = useState(params.get('search') ?? '');
+  const [searchInput, setSearchInput] = useState(params.get('search') ?? '');
+  const [active, setActive] = useState<ActiveFilter>(getInitialActive);
+  const [selectedEmployee, setSelectedEmployee] =
+    useState<EmployeeType | null>(null);
+  const [refreshCount, setRefreshCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const query = new URLSearchParams();
+
+    query.set('page', String(page));
+    query.set('size', String(size));
+
+    if (search) {
+      query.set('search', search);
+    }
+
+    if (active !== 'all') {
+      query.set('active', active);
+    }
+
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}?${query.toString()}`,
+    );
+
+    setError(null);
+
+    getAllEmployees({ page, size, search, active })
+      .then(setEmployeePageData)
+      .catch(() => setError('Could not load employees'));
+  }, [page, size, search, active, refreshCount]);
+
+  const handleCreateEmployee = async (data: EmployeeFormData) => {
+    await createEmployee(data);
+    setPage(1);
+    setRefreshCount((count) => count + 1);
+  };
+
+  const handleApplyFilters = () => {
+    setSearch(searchInput.trim());
+    setPage(1);
+    setSelectedEmployee(null);
+  };
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearch('');
+    setActive('all');
+    setSize(10);
+    setPage(1);
+    setSelectedEmployee(null);
+  };
+
+  return (
+    <main className="app">
+      <header className="page-header">
+        <h1>Employee Manager</h1>
+        <p>Browse employees and view their contract history.</p>
+      </header>
+
+      <NewEmployeeForm onSubmit={handleCreateEmployee} />
+
+      <section>
+        <h2>Employees</h2>
+
+        <EmployeeFilters
+          search={searchInput}
+          active={active}
+          size={size}
+          onSearchChange={setSearchInput}
+          onActiveChange={(value) => {
+            setActive(value);
+            setPage(1);
+            setSelectedEmployee(null);
+          }}
+          onSizeChange={(value) => {
+            setSize(value);
+            setPage(1);
+            setSelectedEmployee(null);
+          }}
+          onSubmit={handleApplyFilters}
+          onClear={handleClearFilters}
+        />
+
+        {error && <p className="error-message">{error}</p>}
+
+        {!error && employeePageData?.data.length === 0 && (
+          <p>No employees found.</p>
+        )}
+
+        <div className="employee-list">
+          {employeePageData?.data.map((employee) => (
+            <Employee
+              key={employee.id}
+              employee={employee}
+              onView={setSelectedEmployee}
+            />
+          ))}
+        </div>
+
+        {employeePageData && (
+          <Pagination
+            currentPage={employeePageData.currentPage}
+            totalPages={employeePageData.totalPages}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              setSelectedEmployee(null);
+            }}
+          />
+        )}
+      </section>
+
+      {selectedEmployee && (
+        <EmployeeDetails
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
+      )}
+    </main>
+  );
+}
+
+export default App;
