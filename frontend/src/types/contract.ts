@@ -1,19 +1,35 @@
-export interface Contract {
-    id: string;
-    contractType: string;
-    startDate: string;
-    endDate: string | null;
-    employmentBasis: string;
-    hoursPerWeek: number;
-    isActive: boolean;
-}
+export type ContractType = 'CONTRACT' | 'PERMENANT';
+export type EmploymentBasis = 'FULL_TIME' | 'PART_TIME';
+export type SortDirection = 'ASC' | 'DESC';
 
 export type ContractSortField =
-    | 'id'
     | 'contractType'
     | 'startDate'
     | 'endDate'
     | 'employmentBasis'
     | 'hoursPerWeek';
 
-export type SortDirection = 'ASC' | 'DESC';
+export interface Contract {
+    id: string;
+    contractType: ContractType;
+    startDate: string;
+    endDate: string | null;
+    employmentBasis: EmploymentBasis;
+    hoursPerWeek: number;
+    isActive: boolean;
+}
+
+export interface ContractRequest {
+    contractType: ContractType;
+    startDate: string;
+    endDate: string;
+    employmentBasis: EmploymentBasis;
+    hoursPerWeek: number;
+}
+
+export interface ContractQueryParams {
+    page: number;
+    size: number;
+    sortBy: ContractSortField;
+    sortDirection: SortDirection;
+}

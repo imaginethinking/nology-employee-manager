@@ -1,38 +1,32 @@
-import type { Employee, ActiveFilter } from '../types/employee';
+import type {
+    Employee,
+    EmployeeQueryParams,
+    EmployeeRequest,
+} from '../types/employee';
 import type { PageResponse } from '../types/pagination';
-import type { EmployeeFormData } from '../components/NewEmployeeForm/schema';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-export interface EmployeeQueryParams {
-    page?: number;
-    size?: number;
-    search?: string;
-    active?: ActiveFilter;
-}
-
-export async function getAllEmployees({
-    page = 1,
-    size = 10,
-    search = '',
-    active = 'all',
-}: EmployeeQueryParams = {}) {
+export function employeeQueryToSearchParams(query: EmployeeQueryParams) {
     const params = new URLSearchParams();
 
-    params.set('page', String(page));
-    params.set('size', String(size));
+    params.set('page', String(query.page));
+    params.set('size', String(query.size));
 
-    if (search.trim()) {
-        params.set('search', search.trim());
+    if (query.search.trim()) {
+        params.set('search', query.search.trim());
     }
 
-    if (active !== 'all') {
-        params.set('active', active);
+    if (query.active !== 'all') {
+        params.set('active', query.active);
     }
 
-    const response = await fetch(
-        `${BASE_URL}/employees?${params.toString()}`,
-    );
+    return params;
+}
+
+export async function getAllEmployees(query: EmployeeQueryParams) {
+    const params = employeeQueryToSearchParams(query);
+    const response = await fetch(`${BASE_URL}/employees?${params.toString()}`);
 
     if (!response.ok) {
         throw new Error('Could not fetch employees');
@@ -41,13 +35,11 @@ export async function getAllEmployees({
     return (await response.json()) as PageResponse<Employee>;
 }
 
-export async function createEmployee(employeeData: EmployeeFormData) {
+export async function createEmployee(data: EmployeeRequest) {
     const response = await fetch(`${BASE_URL}/employees`, {
         method: 'POST',
-        body: JSON.stringify(employeeData),
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
     });
 
     if (!response.ok) {
@@ -55,4 +47,28 @@ export async function createEmployee(employeeData: EmployeeFormData) {
     }
 
     return (await response.json()) as Employee;
+}
+
+export async function updateEmployee(id: string, data: EmployeeRequest) {
+    const response = await fetch(`${BASE_URL}/employees/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) {
+        throw new Error('Could not update employee');
+    }
+
+    return (await response.json()) as Employee;
+}
+
+export async function deleteEmployee(id: string) {
+    const response = await fetch(`${BASE_URL}/employees/${id}`, {
+        method: 'DELETE',
+    });
+
+    if (!response.ok) {
+        throw new Error('Could not delete employee');
+    }
 }

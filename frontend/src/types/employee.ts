@@ -20,4 +20,28 @@ export interface Employee {
     contactDetails: ContactDetails;
 }
 
+export interface EmployeeRequest {
+    firstName: string;
+    middleName?: string;
+    lastName: string;
+    contactDetails: {
+        emailAddress: string;
+        mobileNumber: string;
+        address: {
+            addressLine1: string;
+            addressLine2?: string;
+            city: string;
+            postcode: string;
+            country: string;
+        };
+    };
+}
+
 export type ActiveFilter = 'all' | 'true' | 'false';
+
+export interface EmployeeQueryParams {
+    page: number;
+    size: number;
+    search: string;
+    active: ActiveFilter;
+}
