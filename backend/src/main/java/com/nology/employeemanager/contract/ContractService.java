@@ -85,6 +85,17 @@ public class ContractService {
         return ContractResponse.from(contract);
     }
 
+    public ContractResponse getCurrentContract(UUID employeeId) {
+        employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException("Employee", employeeId.toString()));
+
+        Contract contract = contractRepository
+                .findCurrentContract(employeeId,LocalDate.now())
+                .orElseThrow(() -> new NotFoundException("Contract", employeeId.toString()));
+
+        return ContractResponse.from(contract);
+    }
+
     public PageResponse<ContractResponse> getPagedEmployeeContracts(
         UUID employeeId,
         ContractQueryParams params) {

@@ -1,6 +1,7 @@
 package com.nology.employeemanager.contract;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -23,7 +24,18 @@ public interface ContractRepository extends JpaRepository<Contract, UUID> {
         LocalDate startDate,
         LocalDate endDate,
         UUID excludeContractId
-);
+    );
 
     Page<Contract> findByEmployee_Id(UUID employeeId, Pageable pageable);
+
+    @Query("""
+            SELECT c
+            FROM Contract c
+            WHERE c.employee.id = :employeeId
+              AND c.startDate <= :date
+              AND (c.endDate IS NULL OR c.endDate >= :date)
+            """)
+    Optional<Contract> findCurrentContract(
+            UUID employeeId,
+            LocalDate date);
 }

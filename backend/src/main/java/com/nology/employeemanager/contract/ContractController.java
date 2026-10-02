@@ -56,6 +56,13 @@ public class ContractController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<ContractResponse> getCurrentContract(@PathVariable UUID employeeId) {
+        ContractResponse response = contractService.getCurrentContract(employeeId);
+
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{contractId}")
     public ResponseEntity<ContractResponse> update(@PathVariable UUID employeeId, @PathVariable UUID contractId,
         @RequestBody @Valid UpdateContractRequest request) {
