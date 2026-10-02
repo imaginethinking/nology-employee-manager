@@ -12,6 +12,7 @@ import com.nology.employeemanager.common.ServiceValidationErrors;
 import com.nology.employeemanager.common.dtos.PageResponse;
 import com.nology.employeemanager.common.exceptions.NotFoundException;
 import com.nology.employeemanager.common.exceptions.ServiceValidationException;
+import com.nology.employeemanager.contract.dtos.ContractQueryParams;
 import com.nology.employeemanager.contract.dtos.ContractResponse;
 import com.nology.employeemanager.contract.dtos.CreateContractRequest;
 import com.nology.employeemanager.contract.dtos.UpdateContractRequest;
@@ -31,13 +32,13 @@ public class ContractService {
     public ContractResponse create(UUID employeeId, CreateContractRequest request) {
 
         Employee employee = this.employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+            .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
 
         validateContract(
-                employeeId,
-                request.getStartDate(),
-                request.getEndDate(),
-                null);
+            employeeId,
+            request.getStartDate(),
+            request.getEndDate(),
+            null);
 
         Contract contract = modelMapper.map(request, Contract.class);
         contract.setEmployee(employee);
@@ -48,20 +49,20 @@ public class ContractService {
 
     public ContractResponse update(UUID employeeId, UUID contractId, UpdateContractRequest request) {
         this.employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+            .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
 
         Contract contract = this.contractRepository.findById(contractId)
-                .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
+            .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
 
         if (!contract.getEmployee().getId().equals(employeeId)) {
             throw new NotFoundException("Contract", contractId.toString());
         }
 
         validateContract(
-                employeeId,
-                request.getStartDate(),
-                request.getEndDate(),
-                contractId);
+            employeeId,
+            request.getStartDate(),
+            request.getEndDate(),
+            contractId);
 
         modelMapper.map(request, contract);
 
@@ -72,10 +73,10 @@ public class ContractService {
 
     public ContractResponse getById(UUID employeeId, UUID contractId) {
         this.employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+            .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
 
         Contract contract = this.contractRepository.findById(contractId)
-                .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
+            .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
 
         if (!contract.getEmployee().getId().equals(employeeId)) {
             throw new NotFoundException("Contract", contractId.toString());
@@ -84,21 +85,32 @@ public class ContractService {
         return ContractResponse.from(contract);
     }
 
-    public PageResponse<ContractResponse> getPagedEmployeeContracts(UUID employeeId) {
-        this.employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
+    public PageResponse<ContractResponse> getPagedEmployeeContracts(
+        UUID employeeId,
+        ContractQueryParams params) {
 
-        PageRequest pageRequest = PageRequest.of(0, 100);
-        Page<Contract> page = this.contractRepository.findByEmployee_Id(employeeId, pageRequest);
+        employeeRepository.findById(employeeId)
+            .orElseThrow(() -> new NotFoundException("Employee", employeeId.toString()));
+
+        PageRequest pageRequest = PageRequest.of(
+            params.getPage() - 1,
+            params.getSize(),
+            params.toSort());
+
+        Page<Contract> page = contractRepository.findByEmployee_Id(
+            employeeId,
+            pageRequest);
+
+        params.validatePageNumber(page);
 
         return PageResponse.assemble(page, ContractResponse::from);
     }
 
     private void validateContract(
-            UUID employeeId,
-            LocalDate startDate,
-            LocalDate endDate,
-            UUID excludeContractId) {
+        UUID employeeId,
+        LocalDate startDate,
+        LocalDate endDate,
+        UUID excludeContractId) {
         ServiceValidationErrors errors = new ServiceValidationErrors();
 
         if (endDate != null && startDate.isAfter(endDate)) {
@@ -106,10 +118,10 @@ public class ContractService {
         }
 
         if (contractRepository.existsOverlappingContract(
-                employeeId,
-                startDate,
-                endDate,
-                excludeContractId)) {
+            employeeId,
+            startDate,
+            endDate,
+            excludeContractId)) {
             errors.add("contract", "Contract dates overlap with an existing contract");
         }
 

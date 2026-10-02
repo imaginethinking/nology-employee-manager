@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,14 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nology.employeemanager.common.dtos.PageResponse;
+import com.nology.employeemanager.contract.dtos.ContractQueryParams;
 import com.nology.employeemanager.contract.dtos.ContractResponse;
 import com.nology.employeemanager.contract.dtos.CreateContractRequest;
 import com.nology.employeemanager.contract.dtos.UpdateContractRequest;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-
 
 @AllArgsConstructor
 @RestController
@@ -30,7 +31,7 @@ public class ContractController {
 
     @PostMapping
     public ResponseEntity<ContractResponse> create(@PathVariable UUID employeeId,
-            @RequestBody @Valid CreateContractRequest request) {
+        @RequestBody @Valid CreateContractRequest request) {
 
         ContractResponse response = contractService.create(employeeId, request);
 
@@ -45,16 +46,19 @@ public class ContractController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<ContractResponse>> getPagedEmployeeContracts(@PathVariable  UUID employeeId) {
-        PageResponse<ContractResponse> response = contractService.getPagedEmployeeContracts(employeeId);
+    public ResponseEntity<PageResponse<ContractResponse>> getPagedEmployeeContracts(
+        @PathVariable UUID employeeId,
+        @Valid @ModelAttribute ContractQueryParams params) {
+        PageResponse<ContractResponse> response = contractService.getPagedEmployeeContracts(
+            employeeId,
+            params);
 
         return ResponseEntity.ok(response);
     }
-    
-    
 
     @PatchMapping("/{contractId}")
-    public ResponseEntity<ContractResponse> update(@PathVariable UUID employeeId, @PathVariable UUID contractId, @RequestBody @Valid UpdateContractRequest request) {
+    public ResponseEntity<ContractResponse> update(@PathVariable UUID employeeId, @PathVariable UUID contractId,
+        @RequestBody @Valid UpdateContractRequest request) {
         ContractResponse response = contractService.update(employeeId, contractId, request);
 
         return ResponseEntity.ok(response);
