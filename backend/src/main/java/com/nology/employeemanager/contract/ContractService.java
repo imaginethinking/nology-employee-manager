@@ -1,9 +1,6 @@
 package com.nology.employeemanager.contract;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -37,11 +34,10 @@ public class ContractService {
                 .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
 
         validateContract(
-            employeeId,
-            request.getStartDate(),
-            request.getEndDate(),
-            null
-        );
+                employeeId,
+                request.getStartDate(),
+                request.getEndDate(),
+                null);
 
         Contract contract = modelMapper.map(request, Contract.class);
         contract.setEmployee(employee);
@@ -53,20 +49,19 @@ public class ContractService {
     public ContractResponse update(UUID employeeId, UUID contractId, UpdateContractRequest request) {
         this.employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
-        
+
         Contract contract = this.contractRepository.findById(contractId)
                 .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
-        
+
         if (!contract.getEmployee().getId().equals(employeeId)) {
             throw new NotFoundException("Contract", contractId.toString());
         }
 
         validateContract(
-            employeeId,
-            request.getStartDate(),
-            request.getEndDate(),
-            contractId
-        );
+                employeeId,
+                request.getStartDate(),
+                request.getEndDate(),
+                contractId);
 
         modelMapper.map(request, contract);
 
@@ -82,6 +77,10 @@ public class ContractService {
         Contract contract = this.contractRepository.findById(contractId)
                 .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
 
+        if (!contract.getEmployee().getId().equals(employeeId)) {
+            throw new NotFoundException("Contract", contractId.toString());
+        }
+
         return ContractResponse.from(contract);
     }
 
@@ -96,29 +95,27 @@ public class ContractService {
     }
 
     private void validateContract(
-        UUID employeeId,
-        LocalDate startDate,
-        LocalDate endDate,
-        UUID excludeContractId
-    ) {
-    ServiceValidationErrors errors = new ServiceValidationErrors();
+            UUID employeeId,
+            LocalDate startDate,
+            LocalDate endDate,
+            UUID excludeContractId) {
+        ServiceValidationErrors errors = new ServiceValidationErrors();
 
-    if (endDate != null && startDate.isAfter(endDate)) {
-        errors.add("contract", "Contract start date must be before or equal to contract end date");
-    }
+        if (endDate != null && startDate.isAfter(endDate)) {
+            errors.add("contract", "Contract start date must be before or equal to contract end date");
+        }
 
-    if (contractRepository.existsOverlappingContract(
-            employeeId,
-            startDate,
-            endDate,
-            excludeContractId
-    )) {
-        errors.add("contract", "Contract dates overlap with an existing contract");
-    }
+        if (contractRepository.existsOverlappingContract(
+                employeeId,
+                startDate,
+                endDate,
+                excludeContractId)) {
+            errors.add("contract", "Contract dates overlap with an existing contract");
+        }
 
-    if (errors.hasErrors()) {
-        throw new ServiceValidationException(errors);
+        if (errors.hasErrors()) {
+            throw new ServiceValidationException(errors);
+        }
     }
-}
 
 }

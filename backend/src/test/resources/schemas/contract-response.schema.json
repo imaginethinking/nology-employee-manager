@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["id", "contractType", "startDate", "endDate", "employmentBasis", "hoursPerWeek", "isActive"],
+  "properties": {
+    "id": { "type": "string" },
+    "contractType": { "type": "string", "enum": ["CONTRACT", "PERMENANT"] },
+    "startDate": { "type": "string", "format": "date" },
+    "endDate": { "type": ["string", "null"] },
+    "employmentBasis": { "type": "string", "enum": ["FULL_TIME", "PART_TIME"] },
+    "hoursPerWeek": { "type": "number" },
+    "isActive": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["id", "firstName", "middleName", "lastName", "contactDetails"],
+  "properties": {
+    "id": { "type": "string" },
+    "firstName": { "type": "string" },
+    "middleName": { "type": ["string", "null"] },
+    "lastName": { "type": "string" },
+    "contactDetails": {
+      "type": "object",
+      "required": ["emailAddress", "mobileNumber", "address"],
+      "properties": {
+        "emailAddress": { "type": "string" },
+        "mobileNumber": { "type": "string" },
+        "address": {
+          "type": "object",
+          "required": ["addressLine1", "addressLine2", "city", "postcode", "country"],
+          "properties": {
+            "addressLine1": { "type": "string" },
+            "addressLine2": { "type": ["string", "null"] },
+            "city": { "type": "string" },
+            "postcode": { "type": "string" },
+            "country": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

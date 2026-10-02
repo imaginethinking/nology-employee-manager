@@ -65,8 +65,8 @@ public class EmployeeService {
 
         Specification<Employee> specification = EmployeeSpecifications.hasNameLike(params.getSearch());
 
-        if (Boolean.TRUE.equals(params.getActive())) {
-            specification = specification.and(EmployeeSpecifications.hasActiveContractOn(LocalDate.now()));
+        if (params.getActive() != null) {
+            specification = specification.and(EmployeeSpecifications.hasActiveStatus(params.getActive(), LocalDate.now()));
         }
         
         Page<Employee> page = this.employeeRepository.findAll(specification, pageRequest);
