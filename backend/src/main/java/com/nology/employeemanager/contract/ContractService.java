@@ -1,5 +1,6 @@
 package com.nology.employeemanager.contract;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,19 +36,12 @@ public class ContractService {
         Employee employee = this.employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("Employee", String.valueOf(employeeId)));
 
-        ServiceValidationErrors errors = new ServiceValidationErrors();
-        if (request.getEndDate() != null && request.getStartDate().isAfter(request.getEndDate())) {
-            errors.add("contract", "Contract start date must be before contract end date");
-        }
-
-        List<Contract> contracts = contractRepository.findActiveByEmployee_Id(employee.getId());
-        if (!contracts.isEmpty()) {
-            errors.add("contract", "An employee can have only one active contract at a time");
-        }
-
-        if (errors.hasErrors()) {
-            throw new ServiceValidationException(errors);
-        }
+        validateContract(
+            employeeId,
+            request.getStartDate(),
+            request.getEndDate(),
+            null
+        );
 
         Contract contract = modelMapper.map(request, Contract.class);
         contract.setEmployee(employee);
@@ -63,6 +57,17 @@ public class ContractService {
         Contract contract = this.contractRepository.findById(contractId)
                 .orElseThrow(() -> new NotFoundException("Contract", String.valueOf(contractId)));
         
+        if (!contract.getEmployee().getId().equals(employeeId)) {
+            throw new NotFoundException("Contract", contractId.toString());
+        }
+
+        validateContract(
+            employeeId,
+            request.getStartDate(),
+            request.getEndDate(),
+            contractId
+        );
+
         modelMapper.map(request, contract);
 
         Contract savedContract = contractRepository.save(contract);
@@ -89,5 +94,31 @@ public class ContractService {
 
         return PageResponse.assemble(page, ContractResponse::from);
     }
+
+    private void validateContract(
+        UUID employeeId,
+        LocalDate startDate,
+        LocalDate endDate,
+        UUID excludeContractId
+    ) {
+    ServiceValidationErrors errors = new ServiceValidationErrors();
+
+    if (endDate != null && startDate.isAfter(endDate)) {
+        errors.add("contract", "Contract start date must be before or equal to contract end date");
+    }
+
+    if (contractRepository.existsOverlappingContract(
+            employeeId,
+            startDate,
+            endDate,
+            excludeContractId
+    )) {
+        errors.add("contract", "Contract dates overlap with an existing contract");
+    }
+
+    if (errors.hasErrors()) {
+        throw new ServiceValidationException(errors);
+    }
+}
 
 }
