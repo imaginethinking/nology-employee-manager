@@ -26,11 +26,15 @@ public class EmployeeFactory {
                 options.firstName() != null
                         ? options.firstName()
                         : faker.name().firstName());
-
-        employee.setMiddleName(
-                options.middleName() != null
-                        ? options.middleName()
-                        : faker.name().firstName());
+        
+        String middleName = options.middleName() != null
+            ? options.middleName()
+            : null;
+        
+        if (middleName == null && faker.bool().bool()) {
+            middleName = faker.name().firstName();
+        }
+        employee.setMiddleName(middleName);
 
         employee.setLastName(
                 options.lastName() != null
