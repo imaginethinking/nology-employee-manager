@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -212,6 +213,27 @@ class ContractApiTest {
             .body("startDate", equalTo(newStartDate.toString()))
             .body("endDate", equalTo(newEndDate.toString()))
             .body("hoursPerWeek", equalTo(40));
+    }
+
+    @Test
+    void getCurrentContract_whenActiveContractExists_returnsCurrentContract() {
+        Employee employee = employeeRepository.save(
+            employee("employee@example.com"));
+
+        contractRepository.save(
+                contract(employee, LocalDate.now().minusYears(3), LocalDate.now().minusYears(2)));
+
+        Contract currentContract = contractRepository.save(
+                contract(employee, LocalDate.now().minusMonths(6), null));
+
+        given()
+                .when()
+                .get("/api/v1/employees/{employeeId}/contracts/current", employee.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("id", equalTo(currentContract.getId().toString()))
+                .body("startDate", equalTo(currentContract.getStartDate().toString()))
+                .body("endDate", nullValue());
     }
 
     private Map<String, Object> contractRequest(

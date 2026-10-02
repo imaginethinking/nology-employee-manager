@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -221,6 +222,58 @@ class EmployeeApiTest {
 			.body("status", equalTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
 	}
 
+	@Test
+	void delete_whenEmployeeHasContracts_deletesEmployeeAndContracts() {
+		Employee employee = employeeRepository.save(
+			employee(
+				"Alice",
+				"Smith",
+				"alice@example.com"));
+
+		Contract firstContract = contractRepository.save(
+				contract(
+						employee,
+						LocalDate.now().minusYears(3),
+						LocalDate.now().minusYears(2)));
+
+		Contract secondContract = contractRepository.save(
+				contract(
+						employee,
+						LocalDate.now().minusYears(1),
+						null));
+
+		given()
+				.when()
+				.delete("/api/v1/employees/{employeeId}", employee.getId())
+				.then()
+				.statusCode(HttpStatus.NO_CONTENT.value());
+
+		assertFalse(employeeRepository.existsById(employee.getId()));
+		assertFalse(contractRepository.existsById(firstContract.getId()));
+		assertFalse(contractRepository.existsById(secondContract.getId()));
+	}
+
+	@Test
+	void getCurrentContract_whenEmployeeHasNoActiveContract_returnsNotFound() {
+		Employee employee = employeeRepository.save(
+				employee(
+						"Alice",
+						"Smith",
+						"alice@example.com"));
+
+		contractRepository.save(
+				contract(
+						employee,
+						LocalDate.now().minusYears(2),
+						LocalDate.now().minusYears(1)));
+
+		given()
+				.when()
+				.get("/api/v1/employees/{employeeId}/contracts/current", employee.getId())
+				.then()
+				.statusCode(HttpStatus.NOT_FOUND.value());
+	}
+
 	private Map<String, Object> employeeRequest(
 		String firstName,
 		String lastName,
@@ -280,6 +333,23 @@ class EmployeeApiTest {
 		contract.setEndDate(null);
 		contract.setEmploymentBasis(EmploymentBasis.FULL_TIME);
 		contract.setHoursPerWeek(BigDecimal.valueOf(37.5));
+
+		return contract;
+	}
+
+	private Contract contract(
+			Employee employee,
+			LocalDate startDate,
+			LocalDate endDate) {
+
+		Contract contract = new Contract();
+
+		contract.setEmployee(employee);
+		contract.setContractType(ContractType.PERMENANT);
+		contract.setEmploymentBasis(EmploymentBasis.FULL_TIME);
+		contract.setStartDate(startDate);
+		contract.setEndDate(endDate);
+		contract.setHoursPerWeek(BigDecimal.valueOf(40));
 
 		return contract;
 	}
